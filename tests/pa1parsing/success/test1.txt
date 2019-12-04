@@ -1,0 +1,107 @@
+class Precedence {
+  Void main(String arg1, Int arg2) { //test precedence and wonky whitespace
+    println(
+      1 * 2 +
+3 * 4
+          - 5
+           + 6
+           / 7
+           / 8     ==
+            -123 -
+                    456 &&
+             1
+
+
+
+
+  == 2
+
+                    ||
+           !
+     false
+     );
+    return 1 + 2 + 3 + 4 + 5; // test correct precedence
+
+
+
+    return "*\n**\n***\n****\n\123\x51"; // test special characters in string
+  }
+}
+
+/* multiline and single line commments
+
+will be
+
+throughly tested throughout.
+
+class ShouldntWorkHere{
+  ShouldntBeWorkingMethod name() {
+      return "This shouldn't parse at all!";
+  }
+}
+
+// single line comments don't break multiline comments
+
+*/
+
+class Class { // test multiple classes 1
+  /* start test Var names */
+  Int a;
+  String b;
+  Bool b; //primitive types
+  Array b; // custom classes
+
+  CLASSNAMECANHAVEUNDERSCORE_and_lowercase_AND_D1G1TS identifier_canAlso_hav3_UnderscoreAndUppercase;
+
+  Array fnName(Void a) { //single param works
+    String day;
+    if (getDate() == 1) { //test nested if else statements
+      day = "Monday"; //test assignment
+    } else {
+      if (getDate() == 2) {
+        day = "Tuesday";
+      } else {
+        if (getDate() == 3) {
+          day = "Wednesday";
+        } else {
+          println("There is no other day!");
+        }
+      }
+    }
+
+    while(true) { //test nested while loop
+    while(true) {
+          println("I love cup!");
+        }
+      println("I love cup!");
+    }
+
+    while (("can be") == ("empty")){} //while can be empty
+
+    /* oops if cannot be empty but will be tested in the failing tests and not here. */
+  }
+
+  AtomTest test(Int a, String b, Void c) { //multiple params work
+    Int a;
+      this.a.b.c.d(); // nested member expressions work
+      a().b().c().d(); // nested member expression3 + function call works
+
+      // stuff like true == true shouldnt work
+      // but wrap them in parens and they work because they're atoms now!
+
+      println ((true) == (true));
+
+      // can nest parens
+
+      a = (((((((((1)))))))));
+     // can distinguish between parenthesised expressions and function application:
+
+     a = (((((((((1)))))))))((((((((((2))))))))));
+
+     b = new Abc(); // new constructor works
+  }
+}
+
+/*********TEST EMPTY CLASS *****/
+class Class2 { //second class
+} // empty class is allowed

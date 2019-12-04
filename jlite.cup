@@ -1,0 +1,826 @@
+/*
+  This example comes from a short article series in the Linux 
+  Gazette by Richard A. Sevenich and Christopher Lopes, titled
+  "Compiler Construction Tools". The article series starts at
+
+  http://www.linuxgazette.com/issue39/sevenich.html
+
+  Small changes and updates to newest JFlex+Cup versions 
+  by Gerwin Klein
+*/
+
+/*
+  Commented By: Christopher Lopes
+  File Name: jlite.cup
+  To Create: > java java_cup.Main < jlite.cup
+*/
+   
+   
+/* ----------------------Preliminary Declarations Section--------------------*/
+   
+/* Import the class java_cup.runtime.*  */
+import java_cup.runtime.*;
+import node.*;
+import node.statement.*;
+import node.expression.*;
+import common.*;
+import java.util.*;
+   
+/* Parser code to change the way the parser reports errors (include
+   line and column number of the error). */
+parser code {:
+    
+    /* Change the method report_error so it will display the line and
+       column of where the error occurred in the input as well as the
+       reason for the error which is passed into the method in the
+       String 'message'. */
+    static int errors = 0;
+    public void report_error(String message, Object info) {
+
+            /* Create a StringBuilder called 'm' with the string 'Error' in it. */
+            StringBuilder m = new StringBuilder("Error");
+
+            /* Check if the information passed to the method is the same
+               type as the type java_cup.runtime.Symbol. */
+            if (info instanceof java_cup.runtime.Symbol) {
+                /* Declare a java_cup.runtime.Symbol object 's' with the
+                   information in the object info that is being typecasted
+                   as a java_cup.runtime.Symbol object. */
+                java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+
+                /* Check if the line number in the input is greater or
+                   equal to zero. */
+                if (s.left >= 0) {
+                    /* Add to the end of the StringBuilder error message
+                       the line number of the error in the input. */
+                    m.append(" in line "+(s.left+1));
+                    /* Check if the column number in the input is greater
+                       or equal to zero. */
+                    if (s.right >= 0)
+                        /* Add to the end of the StringBuilder error message
+                           the column number of the error in the input. */
+                        m.append(", column "+(s.right+1));
+                }
+            }
+
+            /* Add to the end of the StringBuilder error message created in
+               this method the message that was passed into this method. */
+            m.append(" : "+message);
+
+            /* Print the contents of the StringBuilder 'm', which contains
+               an error message, out on a line. */
+            System.out.println(m);
+        }
+   
+    /* Change the method report_fatal_error so when it reports a fatal
+       error it will display the line and column number of where the
+       fatal error occurred in the input as well as the reason for the
+       fatal error which is passed into the method in the object
+       'message' and then exit.*/
+    public void report_fatal_error(String message, Object info) {
+        report_error(message, info);
+        System.exit(1);
+    }
+
+    public void error(String message, int line, int column) {
+      errors++;
+      System.out.println("On line " + (line+1) + ", column " + (column+1) + ":");
+      report_error(message, null);
+      System.out.println();
+    }
+:};
+   
+
+   
+/* ------------Declaration of Terminals and Non Terminals Section----------- */
+   
+/* Terminals (tokens returned by the scanner).  
+
+   Terminals that have no value are listed first and then terminals
+   that do have an value, in this case an integer value, are listed on
+   the next line down. */
+/*keywords */
+terminal           CLASS, ELSE, WHILE, READLN, PRINTLN, RETURN, MAIN, THIS, NEW, NULL;
+terminal Symbol    IF;
+/*primitive types*/
+terminal    INT, BOOL, STRING, VOID;
+/*separators */
+terminal           SEMI, COMMA;
+terminal           ASSIGN, PLUS, MINUS, TIMES, DIVIDE, LPAREN, RPAREN, LBRACE, RBRACE;
+terminal           MEMBER;
+terminal Integer   INTEGERLITERAL;
+terminal String    STRINGLITERAL;
+terminal String    ID, CNAME;
+terminal Boolean   TRUE, FALSE;
+
+terminal           AND, OR;
+terminal           LT, GT, LTE, GTE, EQ, NEQ, NOT;
+
+non terminal Type Type;
+
+non terminal Program Program;
+non terminal MainClass MainClass;
+non terminal ArrayList<ClassDeclaration> ClassDecls;
+non terminal ClassDeclaration ClassDecl;
+non terminal ArrayList<VariableDeclaration> VarDecls;
+non terminal VariableDeclaration VarDecl;
+non terminal ArrayList<MethodDeclaration> MdDecls;
+non terminal MethodDeclaration MdDecl;
+non terminal MethodBody MdBody;
+non terminal ArrayList<Parameter> WrappedFmlList, FmlList, FmlRest;
+non terminal Statement Stmt;
+non terminal IfStatement IfStatement;
+non terminal ArrayList<Statement> Stmts, StmtsRest;
+non terminal Expression Exp, BExp, Conj, RExp, BGrd, NotOp, AExp, Term, Ftr, Atom;
+non terminal ArrayList<Expression> ExpList, ExpRest;
+non terminal Operator.Binary BOp;
+
+/* ----------------------------Grammar Section-------------------- */
+Program
+::= MainClass:m ClassDecls:c
+  {:
+    if (errors > 0) {
+      report_fatal_error(errors + " syntax errors detected. Parse failed.", null);
+    }
+    RESULT = new Program(m, c);
+  :}
+  | error:e
+  {:
+    error("Is your program empty? A program must contain one Main class at the minimum. \n" +
+      "Otherwise, I was unable to help you detect the syntax error ): Do go through the jLite syntax again.", 0, 0);
+    report_fatal_error(errors + " syntax errors detected. Parse failed.", null);
+    RESULT = null;
+  :}
+  ;
+
+MainClass
+::= CLASS CNAME:c LBRACE VOID MAIN WrappedFmlList:ps MdBody:md RBRACE
+  {:
+    RESULT = new MainClass(new Type(c, new Location(cleft, cright)), ps, md);
+  :}
+  | CLASS CNAME:c LBRACE error:e VOID MAIN WrappedFmlList:ps MdBody:md RBRACE
+  {:
+    error("Main class should only contain one method, with name `main` and type Void.", eleft, eright);
+    RESULT = new MainClass(new Type(c), ps, md);
+  :}
+  ;
+
+ClassDecls
+::= ClassDecls:cs ClassDecl:c
+  {:
+    cs.add(c);
+    RESULT = cs;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+ClassDecl
+::= CLASS CNAME:cname LBRACE VarDecls:vd MdDecls:md RBRACE
+  {:
+    RESULT = new ClassDeclaration(new Type(cname, new Location(cnameleft, cnameright)), vd, md);
+  :}
+  | CLASS CNAME:cname VarDecls error:e RBRACE
+  {:
+    error("Class body cannot be parsed.\n" +
+                "Check that there are only variable declarations and method declarations, " +
+                " and that all variable declaration statements come before method declarations."
+                , cnameleft, cnameright);
+    RESULT = new ClassDeclaration(new Type(cname), new ArrayList<>(), new ArrayList<>());
+  :}
+  ;
+
+VarDecls
+::= VarDecls:vds VarDecl:vd
+  {:
+    vds.add(vd);
+    RESULT = vds;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+VarDecl
+::= Type:t ID:id SEMI
+  {:
+    RESULT = new VariableDeclaration(t, new Identifier(id, new Location(idleft, idright)));
+  :}
+  | error SEMI:s
+  {:
+    RESULT = new VariableDeclaration(Type.ERROR, Identifier.ERROR());
+    error("Possibly incorrect variable declaration ending at specifiied location.", sleft, sright);
+  :}
+  ;
+
+MdDecl
+::= Type:t ID:id WrappedFmlList:ps MdBody:ss
+  {:
+    RESULT = new MethodDeclaration(t, new Identifier(id, new Location(idleft, idright)), ps, ss);
+  :}
+  | error WrappedFmlList:ps MdBody:ss
+  {:
+    error("Your method declaration has to have a type and an identifier.", psleft, psright);
+    RESULT = new MethodDeclaration(Type.ERROR, Identifier.ERROR(), new ArrayList<>(), new MethodBody(new ArrayList<>(), new ArrayList<>()));
+  :}
+  | error:e
+  {:
+    error("Incorrect method declaration. It must be of the format:\n"+
+      "<Type> <identifier> (<parameter>...){<statements>...}", eleft, eright);
+    RESULT = new MethodDeclaration(Type.ERROR, Identifier.ERROR(), new ArrayList<>(), new MethodBody(new ArrayList<>(), new ArrayList<>()));
+  :}
+  ;
+
+MdDecls
+::= MdDecl:md MdDecls:mds
+  {:
+    mds.add(0, md);
+    RESULT = mds;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+WrappedFmlList
+::= LPAREN FmlList:ps RPAREN
+  {:
+    RESULT = ps;
+  :}
+  | LPAREN error:e FmlList:ps RPAREN
+  {:
+    error("Your parameter definition should be of the form <Type> <identifier>.", eleft, eright);
+    RESULT = ps;
+  :}
+  ;  
+
+FmlList
+::= Type:t ID:id FmlRest:ps
+  {:
+    ps.add(0, new Parameter(t, new Identifier(id, new Location(idleft, idright))));
+    RESULT = ps;
+  :}
+  | ID:id FmlRest:ps
+  {:
+    error("Your parameter named `" + id + "` is missing its type.", idleft, idright);
+    ps.add(0, new Parameter(Type.ERROR, new Identifier(id, new Location(idleft, idright))));
+    RESULT = ps;
+  :}
+  | Type:t FmlRest:ps
+  {:
+    error("Your parameter with type `" + t + "` is missing its name.", tleft, tright);
+    ps.add(0, new Parameter(t, Identifier.ERROR()));
+    RESULT = ps;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+FmlRest
+::= COMMA Type:t ID:id FmlRest:ps
+  {:
+    ps.add(0, new Parameter(t, new Identifier(id, new Location(idleft, idright))));
+    RESULT = ps;
+  :}
+  | COMMA ID:id FmlRest:ps // ERROR!
+  {:
+    error("Your parameter named `" + id + "` is missing its type.", idleft, idright);
+    ps.add(0, new Parameter(new Type("Error!"), new Identifier(id, new Location(idleft, idright))));
+    RESULT = ps;
+  :}
+  | COMMA Type:t FmlRest:ps // ERROR!
+  {:
+    error("Your parameter with type `" + t + "` is missing its name.", tleft, tright);
+    ps.add(0, new Parameter(t, Identifier.ERROR()));
+    RESULT = ps;
+  :}
+  | COMMA error:e FmlRest:ps
+  {:
+    error("Your parameter definition should be of the form <Type> <identifier>.", eleft, eright);
+    ps.add(0, new Parameter(Type.ERROR, Identifier.ERROR()));
+    RESULT = ps;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+Type
+::= INT:t
+    {:
+      RESULT = new Type("Int", new Location(tleft, tright));
+    :}
+  | BOOL:t
+    {:
+      RESULT = new Type("Bool", new Location(tleft, tright));
+    :}
+  | STRING:t
+    {:
+      RESULT = new Type("String", new Location(tleft, tright));
+    :}
+  | CNAME:t
+    {:
+      RESULT = new Type(t, new Location(tleft, tright));
+    :}
+  | VOID:t
+    {:
+      RESULT = new Type("Void", new Location(tleft, tright));
+    :}
+  ;
+
+MdBody
+::= LBRACE VarDecls:vds Stmts:ss RBRACE
+  {:
+    RESULT = new MethodBody(vds, ss);
+  :}
+  | VarDecls:vds Stmts:ss RBRACE // ERROR
+  {:
+    error("Method body is missing a left curly brace.", vdsleft, vdsright);
+    RESULT = new MethodBody(vds, ss);
+  :}
+  | LBRACE:e VarDecls:vds error RBRACE // ERROR
+  {:
+    error("Method body cannot be parsed.\n" +
+      "Check that there is at least one non-variable-declaration statement," +
+      " and that all variable declaration statements come before other statements.", eleft, eright);
+    RESULT = new MethodBody(vds, new ArrayList<>());
+  :}
+  | LBRACE:e RBRACE // ERROR
+  {:
+    error("Method body cannot be empty.\n" +
+      "There must be 0 or more variable declaration statements followed by 1 or more other statements", eleft, eright);
+    RESULT = new MethodBody(new ArrayList<>(), new ArrayList<>());
+  :}
+  ;
+
+Stmt
+::= IfStatement:i
+  {:
+    RESULT = i;
+  :}
+  | WHILE:w LPAREN Exp:e RPAREN LBRACE StmtsRest:body RBRACE
+  {:
+    RESULT = new WhileStatement(e, body, new Location(wleft, wright));
+  :}
+  // START: ERROR RECOVERY FOR WHILE STATEMENT
+  | WHILE LPAREN Exp RPAREN error:e Stmt
+  {:
+    error("While statement require curly braces", eleft, eright);
+    RESULT = new WhileStatement(Expression.ERROR(), new ArrayList<>());
+  :}
+  | WHILE error:e Exp LBRACE StmtsRest RBRACE
+  {:
+    error("Condition for while statement should be wrapped in parentheses.", eleft, eright);
+    RESULT = new WhileStatement(Expression.ERROR(), new ArrayList<>());
+  :}
+  | WHILE LPAREN error:e RPAREN LBRACE StmtsRest:body RBRACE
+  {:
+    error("While statement should contain an epxression.", eleft, eright);
+    RESULT = new WhileStatement(Expression.ERROR(), new ArrayList<>());
+  :}
+  // END: ERROR RECOVERY FOR WHILE STATEMENT
+  | READLN LPAREN ID:id RPAREN SEMI
+  {:
+    RESULT = new ReadLineStatement(new Identifier(id, new Location(idleft, idright)));
+  :}
+  | PRINTLN:p LPAREN Exp:e RPAREN SEMI
+  {:
+    RESULT = new PrintLineStatement(e, new Location(pleft, pright));
+  :}
+  | ID:id ASSIGN Exp:e SEMI
+  {:
+    RESULT = new AssignmentStatement(new Identifier(id, new Location(idleft, idright)), e);
+  :}
+  | Atom:obj MEMBER ID:prop ASSIGN Exp:e SEMI
+  {:
+    RESULT = new PropertyAssignmentStatement(obj, new Identifier(prop, new Location(propleft, propright)), e);
+  :}
+  | Atom:callee LPAREN:l ExpList:args RPAREN SEMI
+  {:
+    RESULT = new CallStatement(new CallExpression(callee, args, new Location(lleft, lright)));
+  :}
+  | RETURN:r Exp:e SEMI
+  {:
+    RESULT = new ReturnStatement(e, new Location(rleft, rright));
+  :}
+  | RETURN:r SEMI
+  {:
+    RESULT = new EmptyReturnStatement(new Location(rleft, rright));
+  :}
+  ;
+
+IfStatement
+::= IF:i LPAREN Exp:e RPAREN LBRACE Stmts:ifss RBRACE ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      RESULT = new IfStatement(e, ifss, elsess, new Location(ileft, iright));
+    :}
+    // BEGIN: ERROR RECOVERY FOR IF STATEMENT
+    | IF LPAREN Exp:e RPAREN LBRACE error:er RBRACE ELSE LBRACE RBRACE
+    {:
+      error("If part of if statement contains error(s). Check that it has at least one statement.\n"+
+             "Else part of if statement is empty! It must have at least one statement." , erleft, erright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e RPAREN LBRACE error:er RBRACE ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      error("If part of if statement contains error(s). Check that it has at least one statement!", erleft, erright);
+      RESULT = new IfStatement(e, new ArrayList<>(), elsess);
+    :}
+    | IF LPAREN Exp:e RPAREN LBRACE Stmts:ifss RBRACE ELSE LBRACE error:er RBRACE
+    {:
+      error("Else part of if statement contains error(s). Check that it has at least one statement!", erleft, erright);
+      RESULT = new IfStatement(e, ifss, new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e error:er Stmts:ifss RBRACE ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      error("Your if statement is missing a right parenthesis and/or a left curly brace.", erleft, erright);
+      RESULT = new IfStatement(e, ifss, elsess);
+    :}
+    | IF LPAREN Exp:e RPAREN LBRACE Stmts:ifss RBRACE ELSE Stmt error
+    {:
+      error("The else part of an if statement requires curly braces.", eleft, eright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e RPAREN error ELSE Stmt
+    {:
+      error("Both the if and else part of an if statement require curly braces.", eleft, eright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e RPAREN error ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      error("If part of if statement requires curly braces.", eleft, eright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e RPAREN LBRACE Stmts RBRACE error
+    {:
+      error("Else missing from if statement.", eleft, eright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN Exp:e RPAREN LBRACE RBRACE error
+    {:
+      error("If part of if statement must have at least one statement.", eleft, eright);
+      RESULT = new IfStatement(e, new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF LPAREN error:e RPAREN LBRACE Stmts:ifss RBRACE ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      error("If statement should contain an expression3.", eleft, eright);
+      RESULT = new IfStatement(Expression.ERROR(), new ArrayList<>(), new ArrayList<>());
+    :}
+    | IF error:e Exp:exp LBRACE Stmts:ifss RBRACE ELSE LBRACE Stmts:elsess RBRACE
+    {:
+      error("Condition for if statement should be wrapped in parentheses.", eleft, eright);
+      RESULT = new IfStatement(exp, new ArrayList<>(), new ArrayList<>());
+    :}
+    // END: ERROR RECOVERY FOR IF STATEMENT
+    ;
+
+Stmts
+::= Stmt:s StmtsRest:ss
+  {:
+    ss.add(0, s);
+    RESULT = ss;
+  :}
+  ;
+
+StmtsRest
+::= Stmt:s StmtsRest:ss
+  {:
+    ss.add(0, s);
+    RESULT = ss;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  | error:e SEMI StmtsRest:ss
+  {:
+    RESULT = ss;
+    error("Unrecognised statement", eleft, eright);
+  :}
+  | IF error:e StmtsRest:ss
+  {:
+    RESULT = ss;
+    error("Your if statement is formatted wrongly. If statements should look like:\n" +
+          "\tif (<expression3>) { <statement>... } else { <statement>...S }"
+          , eleft, eright);
+  :}
+  | WHILE error:e StmtsRest:ss
+  {:
+    RESULT = ss;
+    error("Your while statement is formatted wrongly. While statements should look like:\n" +
+          "\twhile (<expression3>) { <statement>... }"
+          , eleft, eright);
+  :}
+  ;
+
+Exp
+::= BExp:b
+  {:
+    RESULT = b;
+  :}
+  | AExp:a
+  {:
+    RESULT = a;
+  :}
+  | STRINGLITERAL:s
+  {:
+    RESULT = new StringLiteral(s);
+  :}
+  ;
+
+BExp
+::= BExp:e1 OR:op Conj:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, e2, new Location(opleft, opright));
+  :}
+  | BExp:e1 OR:op Atom:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, e2, new Location(opleft, opright));
+  :}
+  | BExp:e1 OR error:e
+  {:
+    error("Or (||) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, Expression.ERROR());
+  :}
+  | Atom:e1 OR:op Conj:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, e2, new Location(opleft, opright));
+  :}
+  | Atom:e1 OR:op Atom:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, e2, new Location(opleft, opright));
+  :}
+  | Atom:e1 OR error:e
+  {:
+    error("Or (||) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.OR, e1, Expression.ERROR());
+  :}
+  | Conj:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+Conj
+::= Conj:e1 AND:op RExp:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, e2, new Location(opleft, opright));
+  :}
+  | Conj:e1 AND:op Atom:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, e2, new Location(opleft, opright));
+  :}
+  | Conj:e1 AND error:e
+  {:
+    error("And (&&) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, Expression.ERROR());
+  :}
+  | Atom:e1 AND:op RExp:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, e2, new Location(opleft, opright));
+  :}
+  | Atom:e1 AND:op Atom:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, e2, new Location(opleft, opright));
+  :}
+  | Atom:e1 AND error:e
+  {:
+    error("And (&&) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.AND, e1, Expression.ERROR());
+  :}
+  | RExp:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+RExp
+::= AExp:e1 BOp:bop AExp:e2
+  {:
+    RESULT = new BinaryExpression(bop, e1, e2, new Location(bopleft, bopright));
+  :}
+  | AExp:e1 BOp:bop error:e
+  {:
+    error(bop + " operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = BinaryExpression.ERROR();
+  :}
+  | BGrd:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+BOp
+::= LT
+  {:
+    RESULT = Operator.Binary.LT;
+  :}
+  | GT
+  {:
+    RESULT = Operator.Binary.GT;
+  :}
+  | LTE
+  {:
+    RESULT = Operator.Binary.LTE;
+  :}
+  | GTE
+  {:
+    RESULT = Operator.Binary.GTE;
+  :}
+  | EQ
+  {:
+    RESULT = Operator.Binary.EQ;
+  :}
+  | NEQ
+  {:
+    RESULT = Operator.Binary.NEQ;
+  :}
+  ;
+
+BGrd
+::= TRUE
+  {:
+    RESULT = new BoolLiteral(true);
+  :}
+  | FALSE
+  {:
+    RESULT = new BoolLiteral(false);
+  :}
+  | NotOp:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+NotOp
+::= NOT:op TRUE
+  {:
+    RESULT = new UnaryExpression(Operator.Unary.NOT, new BoolLiteral(true), new Location(opleft, opright));
+  :}
+  | NOT:op FALSE
+  {:
+    RESULT = new UnaryExpression(Operator.Unary.NOT, new BoolLiteral(false), new Location(opleft, opright));
+  :}
+  | NOT:op Atom:e
+  {:
+    RESULT = new UnaryExpression(Operator.Unary.NOT, e, new Location(opleft, opright));
+  :}
+  | NOT:op NotOp:e
+  {:
+    RESULT = new UnaryExpression(Operator.Unary.NOT, e, new Location(opleft, opright));
+  :}
+  | NOT error:e
+  {:
+    error("Not (!) operator cannot be applied to this argument.", eleft, eright);
+    RESULT = Expression.ERROR();
+  :}
+  ;
+
+AExp
+::= AExp:e1 PLUS:op Term:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.PLUS, e1, e2, new Location(opleft, opright));
+  :}
+  | AExp:e1 PLUS error:e
+  {:
+    error("Plus (+) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.PLUS, e1, Expression.ERROR());
+  :}
+  | AExp:e1 MINUS:op Term:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.MINUS, e1, e2, new Location(opleft, opright));
+  :}
+  | AExp:e1 MINUS error:e
+  {:
+    error("Minus (-) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.MINUS, e1, Expression.ERROR());
+  :}
+  | Term:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+Term
+::= Term:e1 TIMES:op Ftr:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.TIMES, e1, e2, new Location(opleft, opright));
+  :}
+  | Term:e1 TIMES error:e
+  {:
+    error("Times (*) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.TIMES, e1, Expression.ERROR());
+  :}
+  | Term:e1 DIVIDE:op Ftr:e2
+  {:
+    RESULT = new BinaryExpression(Operator.Binary.DIVIDE, e1, e2, new Location(opleft, opright));
+  :}
+  | Term:e1 DIVIDE error:e
+  {:
+    error("Divide (/) operator cannot be applied to `" + e1 +"` and this argument.", eleft, eright);
+    RESULT = new BinaryExpression(Operator.Binary.DIVIDE, e1, Expression.ERROR());
+  :}
+  | Ftr:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+Ftr
+::= INTEGERLITERAL:i
+  {:
+    RESULT = new IntLiteral(i);
+  :}
+  | MINUS:op Ftr:e
+  {:
+    RESULT = new UnaryExpression(Operator.Unary.NEGATE, e, new Location(opleft, opright));
+  :}
+  | MINUS error:e
+  {:
+    error("Negate (-) operator cannot be applied to this argument.", eleft, eright);
+    RESULT = Expression.ERROR();
+  :}
+  | Atom:e
+  {:
+    RESULT = e;
+  :}
+  ;
+
+Atom
+::= Atom:a MEMBER ID:id
+  {:
+    RESULT = new MemberExpression(a, new Identifier(id, new Location(idleft, idright)));
+  :}
+  | Atom:a LPAREN:l ExpList:es RPAREN
+  {:
+    RESULT = new CallExpression(a, es, new Location(lleft, lright));
+  :}
+  | THIS
+  {:
+    RESULT = new ThisExpression();
+  :}
+  | ID:id
+  {:
+    RESULT = new IdentifierExpression(new Identifier(id, new Location(idleft, idright)));
+  :}
+  | NEW CNAME:t LPAREN RPAREN
+  {:
+    RESULT = new NewExpression(new Type(t));
+  :}
+  | NEW CNAME:t error:e
+  {:
+    error("Class constructors must be of the form: new <Classname>()", eleft, eright);
+    RESULT = new NewExpression(new Type(t));
+  :}
+  | LPAREN Exp:e RPAREN
+  {:
+    RESULT = new ParenthesizedExpression(e);
+  :}
+  | NULL
+  {:
+    RESULT = new NullLiteral();
+  :}
+  ;
+
+ExpList
+::= Exp:e ExpRest:es
+  {:
+    es.add(0, e);
+    RESULT = es;
+  :}
+  | error:e ExpRest:es
+  {:
+    error("Your argument should be an expression3.", eleft, eright);
+    es.add(0, Expression.ERROR());
+    RESULT = es;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;
+
+ExpRest
+::= COMMA Exp:e ExpRest:es
+  {:
+    es.add(0, e);
+    RESULT = es;
+  :}
+  | COMMA error:e ExpRest:es
+  {:
+    error("Your argument should be an expression3.", eleft, eright);
+    es.add(0, Expression.ERROR());
+    RESULT = es;
+  :}
+  |
+  {:
+    RESULT = new ArrayList<>();
+  :}
+  ;

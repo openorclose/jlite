@@ -1,0 +1,31 @@
+Error in line 9, column 8 : Syntax error
+instead expected token classes are [LPAREN, MEMBER]
+On line 9, column 8:
+Error : Possibly incorrect variable declaration ending at specifiied location.
+
+Error in line 11, column 20 : Syntax error
+instead expected token classes are [COMMA, PLUS, MINUS, TIMES, DIVIDE, LPAREN, RPAREN, MEMBER, AND, OR, LT, GT, LTE, GTE, EQ, NEQ]
+Error in line 11, column 54 : Syntax error
+instead expected token classes are [COMMA, PLUS, MINUS, TIMES, DIVIDE, RPAREN, LT, GT, LTE, GTE, EQ, NEQ]
+On line 11, column 50:
+Error : Your argument should be an expression3.
+
+On line 11, column 14:
+Error : Your argument should be an expression3.
+
+Error in line 13, column 20 : Syntax error
+instead expected token classes are [error, LBRACE]
+On line 13, column 18:
+Error : While statement require curly braces
+
+Error in line 15, column 14 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, STRINGLITERAL, ID, TRUE, FALSE, NOT]
+On line 15, column 13:
+Error : While statement should contain an epxression.
+
+Error in line 18, column 7 : Syntax error
+instead expected token classes are [error, WHILE, READLN, PRINTLN, RETURN, THIS, NEW, NULL, IF, LPAREN, RBRACE, ID]
+On line 17, column 10:
+Error : Unrecognised statement
+
+Error : 6 syntax errors detected. Parse failed.

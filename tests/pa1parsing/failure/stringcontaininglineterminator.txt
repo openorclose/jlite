@@ -1,0 +1,6 @@
+class Main {
+  Void main() {
+    return " hi i am a string containing a
+      line terminator";
+  }
+}

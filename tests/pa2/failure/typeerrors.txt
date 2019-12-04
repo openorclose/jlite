@@ -1,0 +1,93 @@
+// this file has no duplicate name errors, only type errors
+
+class Main {
+
+
+
+Void main(Int i, Int a, Int d){
+   Int a; // shadowing allowed, no error
+   Main b;
+   Bool bool;
+   NotMain nm;
+   nm = new NotMain();
+   while(true){
+    a = b * 2; // type error
+    a = 1 + null * null + 1 + 1 + 1 + 1; // only the 2 null errors shown, don't cascade
+    b.a = 1; // assign to nonexistent field
+    c = 2; // assign to nonexistent var/field
+    this.d =2 ; //same as above;
+
+    this.abc(); //nonexistent method call
+
+    nm.b(); //call method from other class ok
+    bool = nm.dummy();
+    bool = null; // cannot assign null to primitive
+    return 1; // returning int to type void
+   }
+
+}
+
+
+
+}
+
+class NotMain {
+   Valid j;
+
+   Int b;
+
+   Int b() { // method name can be same as field name
+    Int j; // body variable can shadow field variable
+
+   if ((true) == (true)) { // relational exp only allow numbers
+    return 1;
+   } else {
+    b();
+   }
+   }
+
+   Void dummy(Int a) {
+        return;
+       }
+
+       Void dummy(Bool a) { // method overloading allowed
+           return;
+          }
+   Void dummy(Bool a, String s) { // method overloading allowed
+              return;
+             }
+
+   Bool dummy() {
+
+
+
+      Bool i;
+
+      Bool j;
+
+      i = ---(true); // cannot negate bools
+      i = -- null; // cannot negate null
+      i = -----this.j; // cannot negate nonprimitives
+
+      return i ;
+
+   }
+
+
+
+}
+
+
+//below class has no errors
+class Valid {
+  NotMain a; //
+
+  Valid v() {
+    return v(); //recursive calls work
+  }
+  Valid v(Valid v) {
+    return v(v).v(v).v().v(v); // nested method  and overloaded calls work
+  }
+}
+
+

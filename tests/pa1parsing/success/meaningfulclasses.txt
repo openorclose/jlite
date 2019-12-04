@@ -1,0 +1,63 @@
+class OneMain {
+  Void main(){
+    println ("hi");
+  }
+}
+// a kinda meaningful program?
+class Person { //Lengthy class
+  Int age;
+  String firstName;
+  String lastName;
+  Date dob;
+  Country from;
+  Bool isStudent;
+
+  Int getAge() {
+    return age;
+  }
+
+  String getFirst() { return firstName; }
+
+  String getLast() { return lastName; }
+
+  Int calculateCurrentYear() {
+    Int yearBorn;
+    yearBorn = new Date().getYear(dob);
+    return yearBorn + age; // wow we do not have any other way to get the current year
+  }
+
+}
+
+class Child {
+  Person inherited; // i wish we had inheritance
+  Bool isTakingCS4212;
+
+  Void setAge(Int a) {
+    inherited.age = a;
+  }
+
+  Void takeCS4212() {
+    this.isTakingCS4212 = true;
+  }
+
+  Void withdrawIfPossible() {
+    if (isTakingCS4212 && nusCalendar.currentWeek <= 7) {
+      isTakingCS4212 = false;
+    } else {
+      println ("You either haven't taken it or cannot withdraw anymore );");   // Strings can have stuff like ) and ;
+    }
+  }
+
+  Void retrieveHomework() {
+    Homework hw1;
+    hw1 = new Homework();
+    hw1.title = "Programming Assignment 1";
+    hw1.dueDate = new Date();
+
+  }
+}
+
+class Homework {
+  String title;
+  Date dueDate;
+}

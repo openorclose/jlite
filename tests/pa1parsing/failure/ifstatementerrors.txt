@@ -1,0 +1,36 @@
+class Main {
+  Void main() {
+    if (a) { // empty if with no else
+
+    }
+
+    if (a)
+      return;
+    else return; // shorthand not allowed
+
+    if 1 == 2 { //not wrapped in parens
+          return 2;
+    } else {
+      return 1;
+    }
+
+    if (1 == 2) // forget ) and {
+              return 2;
+      } else {
+        return 1;
+      }
+
+    if(true) {} else {} // empty elses
+
+    if (true) {readln(a);} else println(a); // if has {}, else no {}
+    if (true) readln(a); else { println(a);} // if no {}, else has {}
+
+    if (readln(a)) {readln(a);} else { println(a);} // if condition is not an expression3
+
+    if (readln(a)) readln(a); // sadly most stuff breaks down once there are multiple errors ):
+
+    // regardless, if we assume users don't commit more than one if statement mistake at a time it should be fine
+
+    // kidding of course it's not fine. oh well.
+  }
+}

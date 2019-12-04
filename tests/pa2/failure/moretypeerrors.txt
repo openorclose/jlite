@@ -1,0 +1,24 @@
+class Main {
+  Void main() {
+  Obj o;
+  I i;
+    while(null) { // must be bool
+      println(o); // cannot print nonprimitives
+      readln(o); // cannot read into nonprimitives
+    }
+    i.i = false; // cannot assign wrong types;
+    i.obj.obj.obj.obj().obj().obj.i = true; // can assign deeply nested;
+  }
+}
+
+class Obj { // empty classes allowed
+
+}
+
+class I {
+  Int i;
+  I obj;
+  I obj() {
+  return obj;
+  }
+}

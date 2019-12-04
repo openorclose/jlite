@@ -1,0 +1,22 @@
+class Main {
+  Void main() {
+    return;
+  }
+}
+
+class NonMain1 {
+  Int test() {
+      a; //wrong var decl
+
+      fnCall(wrong args, 1 /*correct arg here*/, 123 if return);
+
+      while (true) fncall(); // while statement must have {}
+
+      while (return) {} // while condition must be expression3
+
+readln(a); //mix in some correct things;
+      1; //not a statement
+
+      2; // also not, but the parser detects these two together as one big error
+  }
+}

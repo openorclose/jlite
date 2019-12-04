@@ -1,0 +1,51 @@
+Error in line 6, column 21 : Syntax error
+instead expected token classes are [MINUS, LT, GT, LTE, GTE, EQ, NEQ]
+On line 6, column 20:
+Error : And (&&) operator cannot be applied to `true` and this argument.
+
+Error in line 7, column 29 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, ID, TRUE, FALSE, NOT]
+On line 7, column 19:
+Error : Or (||) operator cannot be applied to `(atom)` and this argument.
+
+Error in line 8, column 16 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, ID]
+On line 8, column 14:
+Error : Plus (+) operator cannot be applied to `0` and this argument.
+
+Error in line 9, column 16 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, ID]
+On line 9, column 14:
+Error : Times (*) operator cannot be applied to `1` and this argument.
+
+Error in line 10, column 14 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, LPAREN, ID, TRUE, FALSE, NOT]
+On line 10, column 12:
+Error : Not (!) operator cannot be applied to this argument.
+
+Error in line 11, column 21 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, LPAREN, ID, TRUE, FALSE, NOT]
+On line 11, column 12:
+Error : Not (!) operator cannot be applied to this argument.
+
+Error in line 13, column 14 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, ID]
+On line 13, column 12:
+Error : Negate (-) operator cannot be applied to this argument.
+
+Error in line 14, column 15 : Syntax error
+instead expected token classes are [error, THIS, NEW, NULL, MINUS, LPAREN, INTEGERLITERAL, ID]
+On line 14, column 12:
+Error : Negate (-) operator cannot be applied to this argument.
+
+Error in line 16, column 31 : Syntax error
+instead expected token classes are [PLUS, MINUS, LT, GT, LTE, GTE, EQ, NEQ]
+On line 16, column 30:
+Error : And (&&) operator cannot be applied to `true` and this argument.
+
+Error in line 24, column 14 : Syntax error
+instead expected token classes are [SEMI, PLUS, MINUS, LT, GT, LTE, GTE, EQ, NEQ]
+On line 24, column 12:
+Error : Unrecognised statement
+
+Error : 10 syntax errors detected. Parse failed.

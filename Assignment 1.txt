@@ -1,0 +1,47 @@
+DESCRIPTION
+-------------
+
+This is a JLite parser, written using jflex and cup.
+
+It accepts all syntatically valid programs as described in the specifications.
+
+ASSUMPTIONS
+------------
+
+For an escaped ASCII sequence, it was either \ followed by exactly 3 digits for decimal or \x followed by exactly 2 digits for hex.
+
+Furthermore, I checked that the number provided  (in decimal or hex) was <= 127.
+
+GRAMMAR
+-------------
+
+For the most part, I followed the BNF given, except where to solve reduce/reduce conflicts particularly the multiple
+places where <Atom> could be used. To solve this, I expanded out all the possible combinations of BExp, Conj, and BGrd.
+
+Also, I tried my best to do some simple error recovery, however it is very limited in cup and sometimes it can report the wrong
+error message. Nonetheless, when I was writing the test cases they did help me a lot when the parser didn't just abort on the first syntax error.
+
+ERROR MESSAGES
+------------
+
+Those test failures without a corresponding .out file are flex errors, and so do not print anything. Instead they throw an exception.
+
+HOW TO USE
+------------
+
+1) Compilation:
+1.1) java -jar jflex.jar jlite.flex
+1.2) java -jar cup.jar < jlite.cup
+1.3a) (windows) javac -cp cup.jar;runtime.jar; *.java
+1.3b) (unix) javac -cp cup.jar:runtime.jar: *.java
+
+2) Running
+2.1a) (windows) java -cp cup.jar;runtime.jar; Main <FILENAME>
+2.1b) (unix) java -cp cup.jar:runtime.jar: Main <FILENAME>
+
+where <FILENAME> is a file containing a JLite program.
+
+e.g. java -cp cup.jar;runtime.jar; Main test.txt
+
+(I have tested this both on my own Windows computer and on sunfire, so hopefully it works on all.)
+

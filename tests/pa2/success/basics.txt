@@ -1,0 +1,76 @@
+/*
+these are mostly some sanity checks, testing out all expressions and statements.
+*/
+
+class Main {
+    Void main() {
+        Int a;
+        Int int;
+        Bool bool;
+        String string;
+        A o;
+        //a = 1 + ("true"); // assignment statement
+        o.a = o; //property assignment
+        o.a(); // call
+        if (true) { // if
+          a = 3;
+          if ( 1 < 2) {
+            if ( 3 > 4 + 3) {
+              //deeply nested
+              a = 2 * 5 + o.b;
+            } else {
+              a = 0;
+            }
+          } else {
+            return;
+
+          }
+        } else {
+          while (false) { // while nested
+            a = 2 + 3 + 3;
+          }
+        }
+        println(a);
+        println(1);
+        println(-1); // negate works
+        println(---------------1); // "infinite" negate works
+        println(true);
+        println(o.getA().getB(o).b + 2 * 3 < 1 * o.b); // really nested stuff works
+        println("string"); // can print string, bool and int
+        readln(int);
+        readln(bool);
+        readln(string); // can read into string, bool and int
+    }
+}
+
+class A {
+  A a;
+  Int b;
+  A a() { // class field and class method can have same name
+    return new A(); // call expression and return value
+  }
+  A getA() {
+    a = null; // assigning to a class field will result in `this.a` in generated code
+    // also, null can be set to a non-primitive type;
+    return a;
+  }
+  A getA(A a) {
+    Int c;
+    c = b * b; // when accessing class fields, will be converted to `this.b`
+    return a;
+  }
+  A getB(A a) {
+  return null; // can return null if return type non-primitive;
+  }
+  Void test() {
+    return;
+  }
+}
+
+class B {
+  A a; // different class can have same fir
+  A getA() { // different class can have same signature as a method from another class
+    return new A();
+
+  }
+}

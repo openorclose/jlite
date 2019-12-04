@@ -1,0 +1,7 @@
+class OneMain {
+  Void main(){
+    return; //bare mininmum of 0 var decl, 1 other statement.
+  }
+}
+
+/** just one main class can be a correct program **/

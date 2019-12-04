@@ -1,0 +1,6 @@
+class Main {
+  Void main() {
+    return "";
+  }
+}
+/* hi this comment is not terminated at the end of file

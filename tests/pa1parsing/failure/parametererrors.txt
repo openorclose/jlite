@@ -1,0 +1,26 @@
+class ParameterErrors {
+  Void main() {
+    return 1;
+  }
+}
+
+class Param {
+  Void name(noType, NoId, random stuff here, more random if while random here) {
+  // it can detect missing Type, missing Id, and partially help if you put in wrong things there
+      readln(a);
+  }
+
+  Void (noType) { //it can detect a missing identifier
+    return;
+  }
+
+  Class (noId, noId, noType) {
+        return;
+  }
+
+  Class a () {
+      return;
+    }
+
+    name(noType) { return; } // missing Class it can't do so well though. on trying to detect this error it consumes the previous input.
+}

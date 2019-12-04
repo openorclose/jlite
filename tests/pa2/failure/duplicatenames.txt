@@ -1,0 +1,82 @@
+// this file has no type errors, only duplicate name errors, since if there are duplicate names, type checking is not performed.
+
+class Main {
+
+
+
+Void main(Int i, Int a, Int a,Int d){// duplicate param a
+   Int a; // shadowing allowed, no error
+   Main b;
+   Int b; // duplicate  method body variable
+   while(true){
+
+
+
+   }
+
+}
+
+
+
+}
+
+
+
+class Main { // duplicate name Main
+   Dummy j;
+
+   Void j; // duplicate class field
+
+   Int b;
+
+   Int b() { // method name can be same as field name
+    Int j; // body variable can shadow field variable
+   return 1;
+   }
+
+   Void dummy(Int a) {
+        return;
+       }
+
+       Void dummy(Bool a) { // method overloading allowed
+           return;
+          }
+   Void dummy(Bool a, String s) { // method overloading allowed
+              return;
+             }
+   Int dummy(Bool a, String a) { // method overloading allowed, but this has exactly same signature as above so error
+              return;
+             }
+
+   Int dummy() {
+
+
+
+      Bool i;
+
+      Bool j;
+
+
+
+      return i ;
+
+   }
+
+
+
+}
+
+
+//below class has no errors
+class Valid {
+  Hi a; //no class named Hi, but will only be checked during type checking so no error yet
+
+  Valid v() {
+    return v(); //nice recursive method;
+  }
+  Valid v(Valid v) {
+    return v(v).v(v).v().v(v);
+  }
+}
+
+

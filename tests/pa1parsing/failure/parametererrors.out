@@ -1,0 +1,40 @@
+Error in line 8, column 34 : Syntax error
+instead expected token classes are []
+On line 8, column 27:
+Error : Your parameter definition should be of the form <Type> <identifier>.
+
+On line 8, column 21:
+Error : Your parameter with type `NoId` is missing its name.
+
+On line 8, column 13:
+Error : Your parameter named `noType` is missing its type.
+
+Error in line 13, column 8 : Syntax error
+instead expected token classes are [ID]
+On line 13, column 9:
+Error : Your parameter named `noType` is missing its type.
+
+On line 13, column 15:
+Error : Your method declaration has to have a type and an identifier.
+
+Error in line 17, column 9 : Syntax error
+instead expected token classes are [ID]
+On line 17, column 22:
+Error : Your parameter named `noType` is missing its type.
+
+On line 17, column 16:
+Error : Your parameter named `noId` is missing its type.
+
+On line 17, column 10:
+Error : Your parameter named `noId` is missing its type.
+
+On line 17, column 28:
+Error : Your method declaration has to have a type and an identifier.
+
+Error in line 25, column 5 : Syntax error
+instead expected token classes are [error, INT, BOOL, STRING, VOID, RBRACE, CNAME]
+On line 21, column 14:
+Error : Method body cannot be parsed.
+Check that there is at least one non-variable-declaration statement, and that all variable declaration statements come before other statements.
+
+Error : 10 syntax errors detected. Parse failed.

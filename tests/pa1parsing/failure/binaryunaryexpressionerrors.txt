@@ -1,0 +1,26 @@
+class ExpressionErrors {
+  Void main() {
+  Int a;
+
+
+    return true && 1; // not allowed
+    return (atom) || "string"; //not allowed
+    return 0 + true;
+    return 1 * false;
+    return ! 1; //cannot not numbers and strings
+    return ! "string";
+
+    return - true;
+    return - ""; // cannot negate boolean and string
+
+    return (atom) || true && 1; //nested stuff works sometimes
+
+    return ((5 * 1) + (1 * 1)) && true;
+
+    // generally, i added some errors to check for wrong types of boolean operations
+      // but the left side of the boolean operation must be the correct type first
+      // e.g. true || 1 will correctly say that 1 is illegal,
+      // but if you do 1 || 1 it will be unable to detect.
+    return 1 || 1; // and this is where it doesn't work so well. It'll just be the default catchall for an unrecognised statement.
+  }
+}
